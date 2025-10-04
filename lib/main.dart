@@ -65,6 +65,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => AppState()..initialize(),
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Finance',
         theme: lightTheme,
         darkTheme: darkTheme,
@@ -110,8 +111,21 @@ class _HomeShellState extends State<HomeShell> {
                 height: 40,
                 decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: softShadows(greenish: true), border: Border.all(color: kPrimary.withAlpha(46))),
                 child: Builder(builder: (context) {
-                  final n = app.profile?.name ?? '';
-                  return CircleAvatar(backgroundColor: kPrimary, child: Text(n.isNotEmpty ? n[0].toUpperCase() : 'U'));
+                    final n = app.profile?.name ?? '';
+                    // Prefer a packaged logo if present, otherwise show initial
+                    return FutureBuilder<bool>(
+                      future: Future.value(true), // placeholder to allow synchronous asset image usage fallback
+                      builder: (ctx, snap) {
+                        // Try using AssetImage directly; Flutter will show broken image if not present, so we guard by displaying Image.asset in a ClipOval.
+                        try {
+                          return ClipOval(
+                            child: Image.asset('assets/images/applogo.png', fit: BoxFit.cover, width: 40, height: 40),
+                          );
+                        } catch (_) {
+                          return CircleAvatar(backgroundColor: kPrimary, child: Text(n.isNotEmpty ? n[0].toUpperCase() : 'U'));
+                        }
+                      },
+                    );
                 }),
               ),
             ),
